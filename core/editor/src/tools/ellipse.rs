@@ -49,20 +49,27 @@ impl Fsm for EllipseToolFsmState {
 			(EllipseToolFsmState::Ready, Event::KeyDown(Key::KeyZ)) => {
 				if data.index > 0 {
 					data.index -= 1;
-					let name = format!("ellipses/ellipse-{}", data.index);
+					let name = format!("ellipse-{}", data.index);
 					operations.push(Operation::DeleteElement { path: name });
 				}
 				EllipseToolFsmState::Ready
+			}
+			(EllipseToolFsmState::LmbDown, Event::MouseMove(position)) => {
+				let name = format!("ellipse-{}", data.index);
+				operations.push(Operation::AddCircle {
+					path: name,
+					cx: data.drag_start.x as f64,
+					cy: data.drag_start.y as f64,
+					r: data.drag_start.distance(&position),
+				});
+				EllipseToolFsmState::LmbDown
 			}
 
 			// TODO - Check for left mouse button
 			(EllipseToolFsmState::LmbDown, Event::MouseUp(mouse_state)) => {
 				let r = data.drag_start.distance(&mouse_state.position);
 				log::info!("draw ellipse with radius: {:.2} with index: {}", r, data.index);
-				let name = format!("ellipses/ellipse-{}", data.index);
-				if data.index == 0 {
-					operations.push(Operation::AddFolder { path: "ellipses".to_string() });
-				}
+				let name = format!("ellipse-{}", data.index);
 				data.index += 1;
 				operations.push(Operation::AddCircle {
 					path: name,
