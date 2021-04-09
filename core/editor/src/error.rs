@@ -1,5 +1,6 @@
 use crate::events::Event;
 use crate::Color;
+use document_core::DocumentError;
 use std::error::Error;
 use std::fmt::{self, Display};
 
@@ -11,6 +12,7 @@ pub enum EditorError {
 	Misc(String),
 	Color(String),
 	UnknownTool,
+	Document(String),
 }
 
 impl Display for EditorError {
@@ -21,6 +23,7 @@ impl Display for EditorError {
 			EditorError::Misc(e) => write!(f, "{}", e),
 			EditorError::Color(c) => write!(f, "Tried to construct an invalid color {:?}", c),
 			EditorError::UnknownTool => write!(f, "The requested tool does not exist"),
+			EditorError::Document(d) => write!(f, "The operation caused a document error {:?}", d),
 		}
 	}
 }
@@ -41,3 +44,4 @@ derive_from!(&str, Misc);
 derive_from!(String, Misc);
 derive_from!(Color, Color);
 derive_from!(Event, InvalidEvent);
+derive_from!(DocumentError, Document);
