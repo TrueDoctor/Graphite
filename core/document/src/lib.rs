@@ -15,7 +15,14 @@ pub enum SvgElement {
 impl SvgElement {
 	pub fn render(&self) -> String {
 		match self {
-			Self::Folder(f) => f.elements.values().map(|e| e.render()).fold(String::with_capacity(f.elements.len() * 30), |s, e| s + &e),
+			Self::Folder(f) => {
+				let mut names: Vec<String> = f.elements.keys().cloned().collect();
+				names.sort();
+				names
+					.iter()
+					.map(|e| f.elements.get(e).unwrap().render())
+					.fold(String::with_capacity(f.elements.len() * 30), |s, e| s + &e)
+			}
 			Self::Circle(c) => {
 				format!(r#"<circle cx="{}" cy="{}" r="{}" style="fill: #fff;" />"#, c.center.x, c.center.y, c.radius)
 			}
