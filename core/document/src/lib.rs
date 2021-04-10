@@ -17,11 +17,10 @@ impl SvgElement {
 		match self {
 			Self::Folder(f) => {
 				let mut names: Vec<String> = f.elements.keys().cloned().collect();
-				names.sort();
-				names
+				f.names
 					.iter()
 					.map(|e| f.elements.get(e).unwrap().render())
-					.fold(String::with_capacity(f.elements.len() * 30), |s, e| s + &e)
+					.fold(String::with_capacity(f.elements.len() * 30), |s, e| s + "\n" + &e)
 			}
 			Self::Circle(c) => {
 				format!(r#"<circle cx="{}" cy="{}" r="{}" style="fill: #fff;" />"#, c.center.x, c.center.y, c.radius)
@@ -44,6 +43,7 @@ pub enum DocumentError {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Folder {
 	elements: HashMap<String, SvgElement>,
+	names: Vec<String>,
 }
 
 impl Folder {
@@ -52,13 +52,16 @@ impl Folder {
 		if self.elements.contains_key(&name) {
 			Err(DocumentError::ElementAlreadyExists)
 		} else {
-			self.elements.insert(name, svg);
+			self.elements.insert(name.clone(), svg);
+			self.names.push(name);
 			Ok(())
 		}
 	}
 
 	fn remove_element(&mut self, name: &str) -> Result<(), DocumentError> {
-		self.elements.remove(name).map_or(Err(DocumentError::ElementNotFound), |_| Ok(()))
+		self.elements.remove(name).map_or(Err(DocumentError::ElementNotFound), |_| Ok(()))?;
+		self.names.remove(self.names.iter().position(|x| x == name).unwrap());
+		Ok(())
 	}
 
 	/// Returns a list of elements in the folder
@@ -77,7 +80,10 @@ impl Folder {
 
 impl Default for Folder {
 	fn default() -> Self {
-		Self { elements: HashMap::new() }
+		Self {
+			elements: HashMap::new(),
+			names: Vec::new(),
+		}
 	}
 }
 
